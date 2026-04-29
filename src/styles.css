@@ -11,77 +11,49 @@
   body {
     margin: 0;
     font-family: "Cormorant Garamond", serif;
-    cursor: none;
-    color: #f9f6f0;
+    color: #2d1841;
     background:
-      radial-gradient(circle at 12% 20%, rgba(111, 61, 173, 0.28), transparent 40%),
-      radial-gradient(circle at 80% 18%, rgba(229, 195, 106, 0.2), transparent 36%),
-      radial-gradient(circle at 52% 86%, rgba(205, 180, 235, 0.24), transparent 44%),
-      linear-gradient(180deg, #090a11, #120f1c 40%, #121625);
+      radial-gradient(circle at 10% 22%, rgba(183, 148, 239, 0.14), transparent 36%),
+      radial-gradient(circle at 85% 10%, rgba(219, 186, 255, 0.18), transparent 34%),
+      radial-gradient(circle at 50% 92%, rgba(184, 239, 220, 0.24), transparent 38%),
+      linear-gradient(180deg, #f3e8ff 0%, #fff9ff 45%, #e0f5ee 100%);
   }
 }
 
 @layer components {
-  .fx {
-    position: fixed;
+  .invitation-page {
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .watercolor-overlay {
+    position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
     z-index: 1;
-  }
-
-  .world-layer {
-    position: fixed;
-    inset: 0;
     pointer-events: none;
-    z-index: 0;
-    will-change: transform;
+    background:
+      radial-gradient(circle at 20% 32%, rgba(168, 85, 247, 0.06), transparent 40%),
+      radial-gradient(circle at 74% 20%, rgba(216, 180, 254, 0.12), transparent 38%),
+      radial-gradient(circle at 50% 78%, rgba(187, 247, 208, 0.14), transparent 42%);
+    filter: url(#watercolorTexture);
   }
 
-  .moon {
+  .soft-bokeh {
     position: absolute;
-    right: 10vw;
-    top: 8vh;
-    width: min(30vw, 320px);
+    top: 5vh;
+    right: 8vw;
+    width: min(42vw, 420px);
     aspect-ratio: 1;
+    z-index: 2;
     border-radius: 9999px;
-    background: radial-gradient(circle at 35% 28%, #fff7d7, #efd9aa 42%, rgba(229, 195, 106, 0.45) 65%, transparent 75%);
-    filter: drop-shadow(0 0 40px rgba(229, 195, 106, 0.3));
-    opacity: 0.85;
-    animation: moonPulse 4s ease-in-out infinite;
-  }
-
-  .palace {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 24vh;
-    background: linear-gradient(to top, rgba(17, 13, 27, 0.95), rgba(17, 13, 27, 0.05));
-    clip-path: polygon(0 100%, 0 70%, 7% 70%, 10% 48%, 13% 70%, 18% 70%, 20% 40%, 22% 70%, 30% 70%, 33% 42%, 36% 70%, 44% 70%, 50% 30%, 56% 70%, 65% 70%, 68% 45%, 71% 70%, 80% 70%, 83% 50%, 86% 70%, 100% 70%, 100% 100%);
-  }
-
-  .minarets {
-    position: absolute;
-    bottom: 18vh;
-    left: 0;
-    right: 0;
-    height: 10vh;
-    opacity: 0.45;
-    animation: sway 5s ease-in-out infinite alternate;
-  }
-
-  .minarets::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(205, 180, 235, 0.5), transparent);
+    background: radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.82), rgba(233, 213, 255, 0.45) 52%, transparent 74%);
+    filter: blur(8px);
   }
 
   .names-glow {
     font-family: "Dancing Script", cursive;
-    background: linear-gradient(135deg, #f6dfae, #d5b1ff, #f6dfae);
+    background: linear-gradient(135deg, #58307a, #7b4fa6, #a855f7);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -93,46 +65,22 @@
     inset: 0;
     display: grid;
     place-items: center;
-    background: #05050a;
+    background: linear-gradient(180deg, rgba(250, 242, 255, 0.98), rgba(247, 239, 255, 0.96));
     z-index: 20;
     text-align: center;
   }
 
-  .cursor {
-    position: fixed;
-    width: 26px;
-    height: 26px;
-    border-radius: 9999px;
-    pointer-events: none;
-    z-index: 9999;
-    mix-blend-mode: screen;
-    box-shadow: -8px 0 0 0 rgba(229, 195, 106, 0.9), 0 0 20px rgba(229, 195, 106, 0.55);
-  }
 }
 
 @keyframes shimmer {
   0% {
-    filter: drop-shadow(0 6px 24px rgba(111, 61, 173, 0.55));
+    filter: drop-shadow(0 8px 24px rgba(123, 58, 198, 0.52));
   }
   50% {
-    filter: drop-shadow(0 6px 24px rgba(229, 195, 106, 0.75));
+    filter: drop-shadow(0 8px 26px rgba(214, 145, 248, 0.7));
   }
   100% {
-    filter: drop-shadow(0 6px 24px rgba(111, 61, 173, 0.55));
+    filter: drop-shadow(0 8px 24px rgba(123, 58, 198, 0.52));
   }
 }
 
-@keyframes moonPulse {
-  50% {
-    transform: scale(1.04);
-  }
-}
-
-@keyframes sway {
-  from {
-    transform: translateX(-1%);
-  }
-  to {
-    transform: translateX(1%);
-  }
-}

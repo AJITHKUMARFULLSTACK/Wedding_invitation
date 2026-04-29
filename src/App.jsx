@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import cherryBlossomLeft from "./cherry blossom (1).gif";
+import cherryBlossomRight from "./cherry blossom.gif";
 
 const DATA = {
   names: "Imran & Yamina",
@@ -35,171 +37,130 @@ function useCountdown(targetIso) {
   return time;
 }
 
-function FXCanvas() {
-  const ref = useRef(null);
-  useEffect(() => {
-    const canvas = ref.current;
-    const ctx = canvas.getContext("2d");
-    let w = window.innerWidth;
-    let h = window.innerHeight;
-    let raf;
-
-    const fit = () => {
-      w = window.innerWidth;
-      h = window.innerHeight;
-      canvas.width = w * window.devicePixelRatio;
-      canvas.height = h * window.devicePixelRatio;
-      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
-    };
-    fit();
-    window.addEventListener("resize", fit);
-
-    const stars = Array.from({ length: 70 }, () => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      r: Math.random() * 1.8 + 0.5,
-      a: Math.random(),
-      v: Math.random() * 0.02 + 0.004
-    }));
-
-    const petals = Array.from({ length: 36 }, () => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      s: Math.random() * 9 + 7,
-      vx: Math.random() - 0.5,
-      vy: Math.random() * 1.2 + 0.8,
-      rot: Math.random() * Math.PI,
-      vr: Math.random() * 0.03 - 0.015
-    }));
-
-    const drawPetal = (p) => {
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot);
-      ctx.beginPath();
-      ctx.moveTo(0, -p.s * 0.6);
-      ctx.bezierCurveTo(p.s * 0.65, -p.s * 0.5, p.s * 0.6, p.s * 0.6, 0, p.s * 0.75);
-      ctx.bezierCurveTo(-p.s * 0.6, p.s * 0.6, -p.s * 0.65, -p.s * 0.5, 0, -p.s * 0.6);
-      const g = ctx.createLinearGradient(-p.s, -p.s, p.s, p.s);
-      g.addColorStop(0, "rgba(245,220,232,.9)");
-      g.addColorStop(1, "rgba(205,180,235,.7)");
-      ctx.fillStyle = g;
-      ctx.fill();
-      ctx.restore();
-    };
-
-    const loop = () => {
-      ctx.clearRect(0, 0, w, h);
-      stars.forEach((s) => {
-        s.a += s.v;
-        if (s.a > 1 || s.a < 0.15) s.v *= -1;
-        ctx.fillStyle = `rgba(255,245,210,${s.a})`;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      petals.forEach((p) => {
-        p.x += p.vx + Math.sin(p.y * 0.012) * 0.3;
-        p.y += p.vy;
-        p.rot += p.vr;
-        if (p.y > h + 20) {
-          p.y = -10;
-          p.x = Math.random() * w;
-        }
-        if (p.x < -20) p.x = w + 20;
-        if (p.x > w + 20) p.x = -20;
-        drawPetal(p);
-      });
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", fit);
-    };
-  }, []);
-
-  return <canvas className="fx" ref={ref} />;
+function WisteriaStrand({ left, sway = 5, delay = 0, scale = 1 }) {
+  return (
+    <motion.div
+      className="absolute top-0"
+      style={{ left, scale }}
+      animate={{ rotate: [-2, 2, -2], y: [0, 8, 0] }}
+      transition={{ duration: sway, repeat: Infinity, ease: "easeInOut", delay }}
+    >
+      <svg width="120" height="300" viewBox="0 0 120 300" aria-hidden="true">
+        <defs>
+          <linearGradient id="stem" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#7a8f6a" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#7a8f6a" stopOpacity="0.05" />
+          </linearGradient>
+          <linearGradient id="petalA" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#d8b4fe" />
+            <stop offset="100%" stopColor="#a855f7" />
+          </linearGradient>
+          <filter id="waterBlur" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="1.8" />
+          </filter>
+        </defs>
+        <path d="M60 0 C62 80, 62 160, 56 250" stroke="url(#stem)" strokeWidth="2" fill="none" />
+        {[...Array(14)].map((_, idx) => (
+          <g key={idx} transform={`translate(${58 + Math.sin(idx) * 12}, ${62 + idx * 15})`} filter="url(#waterBlur)">
+            <ellipse cx="0" cy="0" rx="11" ry="7" fill="url(#petalA)" opacity={0.65 - idx * 0.02} />
+            <ellipse cx="-6" cy="4" rx="9" ry="6" fill="#f5d0fe" opacity={0.5 - idx * 0.015} />
+          </g>
+        ))}
+      </svg>
+    </motion.div>
+  );
 }
 
 function App() {
   const [opening, setOpening] = useState(true);
-  const [cursor, setCursor] = useState({ x: -50, y: -50 });
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const rafRef = useRef(null);
   const time = useCountdown("2026-05-13T10:30:00+05:30");
-  const hangingFlowers = [
-    { left: "8%", delay: 0, duration: 4.8, scale: 1 },
-    { left: "22%", delay: 0.4, duration: 5.4, scale: 0.85 },
-    { left: "50%", delay: 0.2, duration: 5, scale: 1.1 },
-    { left: "74%", delay: 0.7, duration: 5.7, scale: 0.9 },
-    { left: "90%", delay: 0.1, duration: 4.6, scale: 1 }
+  const strands = [
+    { left: "1%", sway: 6.4, delay: 0.1, scale: 1.1 },
+    { left: "8%", sway: 5.4, delay: 0.5, scale: 0.95 },
+    { left: "16%", sway: 6, delay: 0.2, scale: 1 },
+    { left: "79%", sway: 5.8, delay: 0.4, scale: 1 },
+    { left: "87%", sway: 6.2, delay: 0.7, scale: 1.08 },
+    { left: "94%", sway: 5.2, delay: 0.2, scale: 0.9 }
   ];
-  const dancingFlowers = [
-    { left: "12%", delay: 0.1, rotate: 8 },
-    { left: "28%", delay: 0.6, rotate: -10 },
-    { left: "73%", delay: 0.3, rotate: 12 },
-    { left: "86%", delay: 0.8, rotate: -9 }
-  ];
+  const floatingPetals = useMemo(() => Array.from({ length: 20 }, (_, i) => ({
+    left: `${6 + i * 6.7}%`,
+    duration: 8 + (i % 6) * 1.1,
+    delay: i * 0.22
+  })), []);
 
   useEffect(() => {
-    const t = setTimeout(() => setOpening(false), 8000);
+    const t = setTimeout(() => setOpening(false), 3500);
     return () => clearTimeout(t);
   }, []);
 
-  const onMove = useCallback((e) => {
-    setCursor({ x: e.clientX, y: e.clientY });
-    if (rafRef.current) return;
-    rafRef.current = requestAnimationFrame(() => {
-      setOffset({
-        x: (e.clientX / window.innerWidth - 0.5) * 18,
-        y: (e.clientY / window.innerHeight - 0.5) * 14
-      });
-      rafRef.current = null;
-    });
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("mousemove", onMove);
-    return () => window.removeEventListener("mousemove", onMove);
-  }, [onMove]);
-
   return (
-    <div className="relative overflow-x-hidden pb-20">
-      <div className="cursor" style={{ transform: `translate(${cursor.x}px, ${cursor.y}px)` }} />
-      <FXCanvas />
+    <div className="invitation-page relative overflow-x-hidden pb-18">
+      <svg className="absolute h-0 w-0" aria-hidden="true">
+        <filter id="watercolorTexture">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
+          <feColorMatrix type="saturate" values="0.1" />
+          <feComponentTransfer>
+            <feFuncA type="table" tableValues="0 0.06" />
+          </feComponentTransfer>
+        </filter>
+      </svg>
 
-      <div className="world-layer" style={{ transform: `translate(${offset.x * 4}px, ${offset.y * 3}px)` }}>
-        <div className="moon" />
+      <div className="watercolor-overlay" />
+      <div className="soft-bokeh" />
+      <motion.img
+        src={cherryBlossomLeft}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-14 -top-12 z-[5] w-[320px] max-w-[44vw] opacity-55 mix-blend-multiply"
+        animate={{ y: [0, 8, 0], rotate: [-1.5, 1.5, -1.5] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.img
+        src={cherryBlossomRight}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-16 -top-8 z-[5] w-[320px] max-w-[44vw] scale-x-[-1] opacity-50 mix-blend-multiply"
+        animate={{ y: [0, 10, 0], rotate: [1.8, -1.2, 1.8] }}
+        transition={{ duration: 8.6, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
+      />
+
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[4] h-80">
+        {strands.map((strand) => (
+          <WisteriaStrand key={strand.left} {...strand} />
+        ))}
       </div>
-      <div className="world-layer" style={{ transform: `translate(${offset.x * 2}px, ${offset.y * 2}px)` }}>
-        <div className="minarets" />
-        <div className="palace" />
-      </div>
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-[3] h-64">
-        {hangingFlowers.map((flower) => (
+
+      <div className="pointer-events-none fixed inset-0 z-[3]">
+        {floatingPetals.map((petal) => (
           <motion.div
-            key={flower.left}
-            className="absolute top-0 flex flex-col items-center"
-            style={{ left: flower.left, transform: `scale(${flower.scale})` }}
-            animate={{ y: [0, 10, 0], rotate: [-2, 2, -2] }}
-            transition={{ duration: flower.duration, repeat: Infinity, ease: "easeInOut", delay: flower.delay }}
+            key={petal.left}
+            className="absolute -top-10"
+            style={{ left: petal.left }}
+            animate={{ y: ["-6vh", "110vh"], x: [0, 18, -22, 10, -6], rotate: [0, 80, 170, 260] }}
+            transition={{ duration: petal.duration, repeat: Infinity, ease: "linear", delay: petal.delay }}
           >
-            <div className="h-20 w-px bg-gradient-to-b from-emerald-100/80 to-emerald-500/10" />
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-pink-200/45 bg-pink-200/20 text-2xl shadow-[0_0_18px_rgba(236,72,153,0.45)]">
-              ❀
-            </div>
+            <svg width="16" height="14" viewBox="0 0 24 20" aria-hidden="true">
+              <defs>
+                <linearGradient id="driftPetal" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#fbcfe8" />
+                  <stop offset="100%" stopColor="#f9a8d4" />
+                </linearGradient>
+                <filter id="petalBlur">
+                  <feGaussianBlur stdDeviation="0.8" />
+                </filter>
+              </defs>
+              <path d="M12 2 C18 2, 22 8, 12 18 C2 8, 6 2, 12 2 Z" fill="url(#driftPetal)" opacity="0.58" filter="url(#petalBlur)" />
+            </svg>
           </motion.div>
         ))}
       </div>
 
       <AnimatePresence>
         {opening && (
-          <motion.div className="opening" initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1.2 }}>
+          <motion.div className="opening" initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1 }}>
             <div>
               <motion.h1
-                className="font-['Amiri'] text-3xl text-amber-100 sm:text-5xl"
+                className="font-['Amiri'] text-3xl text-violet-800 sm:text-5xl"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 2 }}
@@ -207,10 +168,10 @@ function App() {
                 بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
               </motion.h1>
               <motion.div
-                className="names-glow mt-8 text-6xl leading-none sm:text-8xl md:text-9xl"
+                className="names-glow mt-6 text-6xl leading-none sm:text-8xl md:text-9xl"
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 4.8, duration: 2 }}
+                transition={{ delay: 1.2, duration: 1.8 }}
               >
                 {DATA.names}
               </motion.div>
@@ -219,33 +180,50 @@ function App() {
         )}
       </AnimatePresence>
 
-      <section className="relative z-10 mx-auto grid min-h-screen w-[92%] max-w-6xl place-content-center text-center">
+      <motion.section
+        className="relative z-10 mx-auto grid min-h-[88vh] w-[92%] max-w-4xl place-content-center text-center"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ amount: 0.35, once: false }}
+        transition={{ duration: 0.9, ease: "easeOut" }}
+      >
         <motion.p
-          className="font-['Amiri'] text-4xl text-amber-100 sm:text-5xl md:text-6xl"
+          className="font-['Amiri'] text-3xl text-violet-800 sm:text-4xl md:text-5xl"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 7.8 }}
+          transition={{ delay: 3.4 }}
         >
           بِسْمِ اللَّهِ
         </motion.p>
         <motion.div
-          className="names-glow mt-6 text-6xl leading-none sm:text-8xl md:text-[9rem]"
+          className="names-glow mt-5 text-6xl leading-none sm:text-8xl md:text-[8.5rem]"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 8, duration: 1.2 }}
+          transition={{ delay: 3.6, duration: 1.2 }}
         >
           {DATA.names}
         </motion.div>
-        <p className="mx-auto mt-6 max-w-2xl text-sm uppercase tracking-[0.35em] text-amber-100/85 sm:text-base">
+        <p className="mx-auto mt-6 max-w-2xl text-xs uppercase tracking-[0.35em] text-violet-700/85 sm:text-sm">
           You Are Invited To The Nikkah Ceremony
         </p>
-      </section>
+        <div className="mx-auto mt-10 flex w-full max-w-2xl items-center justify-center gap-4 text-violet-700">
+          <div className="h-px flex-1 bg-violet-400/55" />
+          <div className="text-5xl font-semibold leading-none text-violet-700">13</div>
+          <div className="h-px flex-1 bg-violet-400/55" />
+        </div>
+      </motion.section>
 
-      <section className="relative z-10 mx-auto w-[92%] max-w-6xl py-16 sm:py-20">
-        <h2 className="text-center font-['Playfair_Display'] text-4xl italic tracking-wide text-amber-100 sm:text-5xl">
+      <motion.section
+        className="relative z-10 mx-auto w-[92%] max-w-5xl py-10 sm:py-14"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ amount: 0.3, once: false }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        <h2 className="text-center font-['Playfair_Display'] text-3xl italic tracking-wide text-violet-900 sm:text-4xl">
           The Clock of Eternity
         </h2>
-        <div className="mt-8 grid grid-cols-2 gap-3 rounded-3xl border border-amber-200/25 bg-[#0f0a1f]/60 p-4 shadow-[0_0_50px_rgba(111,61,173,0.25)] backdrop-blur-xl sm:grid-cols-4 sm:gap-4 sm:p-6">
+        <div className="mt-6 grid grid-cols-2 gap-3 rounded-3xl border border-violet-300/35 bg-white/55 p-4 shadow-[0_12px_40px_rgba(168,85,247,0.12)] backdrop-blur-md sm:grid-cols-4 sm:gap-4 sm:p-6">
           {[
             ["Days", time.d],
             ["Hours", time.h],
@@ -253,12 +231,12 @@ function App() {
             ["Seconds", time.s]
           ].map(([label, value]) => (
             <div
-              className="rounded-2xl border border-violet-200/25 bg-white/5 p-4 text-center shadow-inner shadow-violet-300/10"
+              className="rounded-2xl border border-violet-300/35 bg-violet-50/70 p-4 text-center shadow-inner shadow-violet-300/15"
               key={label}
             >
               <AnimatePresence mode="wait">
                 <motion.strong
-                  className="block font-['Playfair_Display'] text-3xl text-amber-100 sm:text-4xl"
+                  className="block font-['Playfair_Display'] text-3xl text-violet-800 sm:text-4xl"
                   key={value}
                   initial={{ rotateX: -80, opacity: 0 }}
                   animate={{ rotateX: 0, opacity: 1 }}
@@ -268,34 +246,40 @@ function App() {
                   {String(value).padStart(2, "0")}
                 </motion.strong>
               </AnimatePresence>
-              <small className="mt-2 block text-xs uppercase tracking-[0.26em] text-violet-100/90">{label}</small>
+              <small className="mt-2 block text-xs uppercase tracking-[0.26em] text-violet-600/90">{label}</small>
             </div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
-      <section className="relative z-10 mx-auto grid w-[92%] max-w-6xl gap-5 py-16 sm:grid-cols-2 sm:py-20">
-        <article className="overflow-hidden rounded-3xl border border-amber-200/30 bg-[#130d25]/65 p-6 backdrop-blur-xl">
-          <h2 className="font-['Playfair_Display'] text-3xl italic text-amber-100 sm:text-4xl">Nikah Ceremony</h2>
-          <p className="mt-4 text-lg text-amber-50/95"><strong className="text-amber-200">Date:</strong> {DATA.nikah.date}</p>
-          <p className="mt-2 text-lg text-amber-50/95"><strong className="text-amber-200">Time:</strong> {DATA.nikah.time}</p>
-          <p className="mt-2 text-lg text-amber-50/95"><strong className="text-amber-200">Venue:</strong> {DATA.nikah.venue}</p>
+      <motion.section
+        className="relative z-10 mx-auto grid w-[92%] max-w-5xl gap-5 py-10 sm:grid-cols-2 sm:py-14"
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ amount: 0.25, once: false }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        <article className="overflow-hidden rounded-3xl border border-violet-300/40 bg-white/60 p-6 backdrop-blur-md">
+          <h2 className="font-['Playfair_Display'] text-3xl italic text-violet-900 sm:text-4xl">Nikah Ceremony</h2>
+          <p className="mt-4 text-lg text-violet-800/95"><strong className="text-violet-600">Date:</strong> {DATA.nikah.date}</p>
+          <p className="mt-2 text-lg text-violet-800/95"><strong className="text-violet-600">Time:</strong> {DATA.nikah.time}</p>
+          <p className="mt-2 text-lg text-violet-800/95"><strong className="text-violet-600">Venue:</strong> {DATA.nikah.venue}</p>
         </article>
-        <article className="overflow-hidden rounded-3xl border border-violet-200/35 bg-[#17102a]/70 p-6 backdrop-blur-xl">
-          <h2 className="font-['Playfair_Display'] text-3xl italic text-amber-100 sm:text-4xl">Walima Celebration</h2>
-          <p className="mt-4 text-lg text-amber-50/95"><strong className="text-violet-200">Date:</strong> {DATA.walima.date}</p>
-          <p className="mt-2 text-lg text-amber-50/95"><strong className="text-violet-200">Time:</strong> {DATA.walima.time}</p>
-          <p className="mt-2 text-lg text-amber-50/95"><strong className="text-violet-200">Venue:</strong> {DATA.walima.venue}</p>
+        <article className="overflow-hidden rounded-3xl border border-fuchsia-300/45 bg-[#fff7fc]/70 p-6 backdrop-blur-md">
+          <h2 className="font-['Playfair_Display'] text-3xl italic text-violet-900 sm:text-4xl">Walima Celebration</h2>
+          <p className="mt-4 text-lg text-violet-800/95"><strong className="text-fuchsia-500">Date:</strong> {DATA.walima.date}</p>
+          <p className="mt-2 text-lg text-violet-800/95"><strong className="text-fuchsia-500">Time:</strong> {DATA.walima.time}</p>
+          <p className="mt-2 text-lg text-violet-800/95"><strong className="text-fuchsia-500">Venue:</strong> {DATA.walima.venue}</p>
         </article>
-      </section>
-      <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[3] h-24">
-        {dancingFlowers.map((flower) => (
+      </motion.section>
+      <div className="pointer-events-none absolute inset-x-0 bottom-2 z-[4] h-16">
+        {["8%", "16%", "26%", "74%", "84%", "92%"].map((left, idx) => (
           <motion.div
-            key={flower.left}
-            className="absolute bottom-0 text-4xl drop-shadow-[0_0_16px_rgba(250,204,21,0.4)] sm:text-5xl"
-            style={{ left: flower.left }}
-            animate={{ y: [0, -14, 0], rotate: [flower.rotate * -1, flower.rotate, flower.rotate * -1] }}
-            transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: flower.delay }}
+            key={left}
+            className="absolute bottom-0 text-3xl text-pink-400/80 drop-shadow-[0_0_8px_rgba(244,114,182,0.35)] sm:text-4xl"
+            style={{ left }}
+            animate={{ y: [0, -6, 0], rotate: [-6, 6, -6] }}
+            transition={{ duration: 3.2 + idx * 0.2, repeat: Infinity, ease: "easeInOut", delay: idx * 0.18 }}
           >
             🌸
           </motion.div>
